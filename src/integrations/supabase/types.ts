@@ -14,7 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      animais: {
+        Row: {
+          criado_em: string
+          descricao: string
+          especie: string
+          foto_url: string
+          id: string
+          idade: string
+          nome: string
+          porte: string
+          status: string
+        }
+        Insert: {
+          criado_em?: string
+          descricao?: string
+          especie: string
+          foto_url?: string
+          id?: string
+          idade?: string
+          nome: string
+          porte: string
+          status?: string
+        }
+        Update: {
+          criado_em?: string
+          descricao?: string
+          especie?: string
+          foto_url?: string
+          id?: string
+          idade?: string
+          nome?: string
+          porte?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      conversas: {
+        Row: {
+          autor: string
+          criado_em: string
+          id: string
+          mensagem: string
+          sessao_id: string
+        }
+        Insert: {
+          autor: string
+          criado_em?: string
+          id?: string
+          mensagem: string
+          sessao_id: string
+        }
+        Update: {
+          autor?: string
+          criado_em?: string
+          id?: string
+          mensagem?: string
+          sessao_id?: string
+        }
+        Relationships: []
+      }
+      faq: {
+        Row: {
+          categoria: string
+          criado_em: string
+          id: string
+          palavras_chave: string
+          pergunta: string
+          resposta: string
+        }
+        Insert: {
+          categoria: string
+          criado_em?: string
+          id?: string
+          palavras_chave?: string
+          pergunta: string
+          resposta: string
+        }
+        Update: {
+          categoria?: string
+          criado_em?: string
+          id?: string
+          palavras_chave?: string
+          pergunta?: string
+          resposta?: string
+        }
+        Relationships: []
+      }
+      interesses: {
+        Row: {
+          animal_id: string | null
+          contato: string
+          criado_em: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          animal_id?: string | null
+          contato: string
+          criado_em?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          animal_id?: string | null
+          contato?: string
+          criado_em?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interesses_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "animais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
