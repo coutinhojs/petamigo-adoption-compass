@@ -126,7 +126,7 @@ const CAMPOS_FAQ: Campo[] = [
   { nome: "resposta", label: "Resposta", tipo: "area", obrigatorio: true },
 ];
 
-type Linha = Record<string, string>;
+type Linha = { [k: string]: string | undefined; id?: string; nome?: string; especie?: string; porte?: string; status?: string; categoria?: string; pergunta?: string };
 
 function Crud({ tabela, campos, titulo }: { tabela: "animais" | "faq"; campos: Campo[]; titulo: (r: Linha) => string }) {
   const [linhas, setLinhas] = useState<Linha[]>([]);
@@ -141,23 +141,23 @@ function Crud({ tabela, campos, titulo }: { tabela: "animais" | "faq"; campos: C
 
   const novo = () => setEdit(Object.fromEntries(campos.map((c) => [c.nome, c.opcoes?.[0] ?? ""])));
 
-  const salvar = async (e: FormEvent) => {
+  const salvar = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     if (!edit) return;
     const dados = Object.fromEntries(campos.map((c) => [c.nome, (edit[c.nome] ?? "").trim()]));
     const { error } = edit.id
       ? await supabase.from(tabela).update(dados as never).eq("id", edit.id)
       : await supabase.from(tabela).insert(dados as never);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Salvo!");
     setEdit(null);
     void carregar();
   };
 
-  const excluir = async (id: string) => {
+  const excluir = async (id: string): Promise<void> => {
     if (!confirm("Excluir este registro?")) return;
     const { error } = await supabase.from(tabela).delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     void carregar();
   };
 
@@ -189,11 +189,11 @@ function Crud({ tabela, campos, titulo }: { tabela: "animais" | "faq"; campos: C
       )}
       <ul className="divide-y rounded-2xl border bg-card">
         {linhas.map((r) => (
-          <li key={r.id} className="flex items-center justify-between gap-2 p-3">
+          <li key={r.id ?? ""} className="flex items-center justify-between gap-2 p-3">
             <span className="min-w-0 truncate text-sm">{titulo(r)}</span>
             <div className="flex shrink-0 gap-1">
               <Button size="icon" variant="ghost" aria-label="Editar" onClick={() => setEdit(r)}><Pencil className="size-4" /></Button>
-              <Button size="icon" variant="ghost" aria-label="Excluir" onClick={() => excluir(r.id)}><Trash2 className="size-4 text-destructive" /></Button>
+              <Button size="icon" variant="ghost" aria-label="Excluir" onClick={() => r.id && excluir(r.id)}><Trash2 className="size-4 text-destructive" /></Button>
             </div>
           </li>
         ))}

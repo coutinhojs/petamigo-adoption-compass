@@ -103,7 +103,7 @@ function ChatPage() {
       .order("criado_em");
     if (error) return bot("Ops, não consegui buscar os animais agora. Tente de novo.", { botoes: MENU });
     if (!data?.length)
-      return bot(`No momento não há ${especie === "cao" ? "cães" : "gatos"} de porte ${PORTE_LABEL[porte].toLowerCase()} disponíveis. Quer tentar outro porte?`, {
+      return bot(`No momento não há ${especie === "cao" ? "cães" : "gatos"} de porte ${(PORTE_LABEL[porte] ?? porte).toLowerCase()} disponíveis. Quer tentar outro porte?`, {
         botoes: [{ label: "Escolher de novo", acao: "adotar" }, { label: "Menu", acao: "menu" }],
       });
     bot(`Encontrei ${data.length} amigo(s) esperando por um lar:`, { animais: data });
@@ -122,19 +122,19 @@ function ChatPage() {
       });
     }
     if (acao.startsWith("especie:")) {
-      const especie = acao.split(":")[1];
+      const especie = acao.split(":")[1] ?? "cao";
       setEtapa({ tipo: "porte", especie });
       return bot("E qual porte?", {
-        botoes: ["pequeno", "medio", "grande"].map((p) => ({ label: PORTE_LABEL[p], acao: `porte:${especie}:${p}` })),
+        botoes: ["pequeno", "medio", "grande"].map((p) => ({ label: PORTE_LABEL[p] ?? p, acao: `porte:${especie}:${p}` })),
       });
     }
     if (acao.startsWith("porte:")) {
-      const [, especie, porte] = acao.split(":");
+      const [, especie = "cao", porte = "medio"] = acao.split(":");
       setEtapa({ tipo: "livre" });
       return void buscarAnimais(especie, porte);
     }
     if (acao === "cuidados") return bot("Sobre qual assunto você quer saber? Você também pode digitar sua dúvida.", { botoes: CUIDADOS });
-    if (acao.startsWith("faq:")) return respostaFaq(acao.split(":")[1]);
+    if (acao.startsWith("faq:")) return respostaFaq(acao.split(":")[1] ?? "");
     if (acao === "posse") return respostaFaq("posse");
     if (acao === "ong") return respostaFaq("ong");
   };
