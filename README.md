@@ -1,24 +1,53 @@
-# Petamigo Adoption Compass
+# PetAmigo JP
 
-Crie um site chamado "PetAmigo JP" com um chatbot para ajudar pessoas a adotar animais e cuidar bem deles. Use Supabase como back-end. Visual amigável, em português do Brasil, responsivo para celular. PÁGINA PRINCIPAL (pública): - Janela de chat em tela cheia. O bot começa com boas-vindas e botões: "Quero adotar", "Cuidados básicos", "Posse responsável", "Falar com uma ONG". - "Quero adotar": o bot pergunta a espécie (cão ou gato) e o porte (pequeno, médio, grande), busca na tabela animais (status = disponivel) e mostra cards com foto, nome, idade e botão "Tenho interesse". - "Tenho interesse": o bot pede nome e contato (WhatsApp ou e-mail), valida e salva na tabela interesses. - "Cuidados básicos": o bot mostra botões de assuntos (vacinas, vermífugo, alimentação, castração, higiene). Também entende palavras-chave digitadas e responde com a resposta da tabela faq. - Se não entender, responde "Não entendi, mas posso ajudar com isto:" e mostra o menu. - Salve cada mensagem do usuário e do bot na tabela conversas. PAINEL ADMIN (/admin), com login por e-mail e senha (Supabase Auth): - CRUD de animais (nome, especie, porte, idade, descricao, foto_url, status). - CRUD do faq (categoria, palavras_chave, pergunta, resposta). - Lista dos interesses recebidos. SUPABASE: - Tabelas: animais, faq, interesses, conversas (campos conforme acima, com id e criado_em). - RLS: leitura pública de animais e faq; inserção pública em interesses e conversas; todo o resto apenas para usuários autenticados. - Insira dados de exemplo: 6 animais e 10 perguntas no faq.
+Chatbot de adoção responsável e orientação sobre cuidados básicos com animais de estimação, desenvolvido para o projeto **KeepChat - Capacitação em Inteligência Artificial** (FapesQ-PB, 2026.2).
 
-This project was built with [Lovable](https://lovable.dev).
+**Autor:** Marcos Vinicius Da Silva Coutinho
 
-## Build with Lovable
+## O que é
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/eb82a10c-ff0e-4741-a2be-39b286decd50).
+O PetAmigo JP é um site com um chatbot que ajuda pessoas a adotar animais e cuidar bem deles. O usuário conversa com o bot por menu e botões, vê os animais disponíveis, tira dúvidas sobre cuidados básicos e registra interesse em adotar. A ONG ou o protetor usa um painel com login para manter os dados atualizados.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+## Funcionalidades
 
-## Development
+- Menu inicial com as opções: Quero adotar, Cuidados básicos, Posse responsável e Falar com uma ONG
+- Lista de animais disponíveis com foto, idade e porte, com filtro por espécie e porte
+- Respostas sobre vacinas, vermífugo, alimentação, castração e higiene a partir de um FAQ
+- Registro de interesse em adotar (nome e contato)
+- Histórico de conversas salvo no banco
+- Painel administrativo (`/admin`) com login para gerenciar animais, FAQ e interesses
+- Resposta padrão quando o bot não entende a pergunta
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Tecnologias
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+- [Lovable](https://lovable.dev): geração do site e da interface
+- React e TypeScript: front-end
+- [Supabase](https://supabase.com): banco de dados PostgreSQL, autenticação e regras de segurança (RLS)
+
+## Como rodar localmente
+
+Requisitos: Node.js 18 ou superior.
+
+```bash
+npm install
 npm run dev
 ```
+
+Depois abra o endereço mostrado no terminal. O painel administrativo fica em `/admin`.
+
+## Banco de dados
+
+O projeto usa o Supabase **jamxteyptuvoduvsvwcs**, configurado em `src/lib/supabase.ts`. Esse arquivo usa apenas a URL do projeto e a chave pública (publishable), que podem ficar no front-end. Nenhuma chave secreta é usada ou publicada neste repositório.
+
+Para criar o banco em um projeto Supabase novo:
+
+1. Abra o **SQL Editor** do seu projeto no Supabase.
+2. Cole o conteúdo de `supabase/schema.sql` e clique em **Run** (uma vez só, pois os dados de exemplo são inseridos junto).
+3. Em **Authentication → Users**, crie o usuário administrador (e-mail e senha) para entrar em `/admin`.
+4. Atualize a URL e a chave pública em `src/lib/supabase.ts` para as do seu projeto.
+
+O `schema.sql` cria as tabelas `animais`, `faq`, `interesses` e `conversas`, ativa o RLS e insere 6 animais e 10 perguntas de exemplo.
+
+### Arquivos gerados automaticamente
+
+Os arquivos `.env`, `supabase/config.toml` e `src/integrations/supabase/` são gerados automaticamente pelo Lovable e **não são usados pelo app**. Eles podem mencionar outro ID de projeto Supabase (um backend criado pela plataforma), que está vazio e pode ser ignorado.
