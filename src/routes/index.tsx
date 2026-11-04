@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { PawPrint, Send, Heart, Lock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { buscarFaq, validarContato, validarNome, type FaqItem } from "@/lib/bot";
 import { Button } from "@/components/ui/button";
 
@@ -55,21 +55,27 @@ function ChatPage() {
   const fimRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const salvar = (autor: "bot" | "usuario", mensagem: string) => {
+  const ultimaMsgUsuario = useRef("");
+
+  const salvar = (respostaBot: string) => {
     if (!sessaoRef.current) return;
     supabase
       .from("conversas")
-      .insert({ sessao_id: sessaoRef.current, autor, mensagem: mensagem.slice(0, 4000) })
+      .insert({
+        sessao_id: sessaoRef.current,
+        mensagem_usuario: ultimaMsgUsuario.current.slice(0, 2000),
+        resposta_bot: respostaBot.slice(0, 4000),
+      })
       .then(({ error }) => error && console.error("Erro ao salvar conversa", error));
   };
 
   const bot = (texto: string, extra: Partial<Msg> = {}) => {
     setMsgs((m) => [...m, { id: ++contador, autor: "bot", texto, ...extra }]);
-    salvar("bot", texto + (extra.animais ? ` [${extra.animais.map((a) => a.nome).join(", ")}]` : ""));
+    salvar(texto + (extra.animais ? ` [${extra.animais.map((a) => a.nome).join(", ")}]` : ""));
   };
   const usuario = (texto: string) => {
     setMsgs((m) => [...m, { id: ++contador, autor: "usuario", texto }]);
-    salvar("usuario", texto);
+    ultimaMsgUsuario.current = texto;
   };
 
   useEffect(() => {
@@ -135,8 +141,16 @@ function ChatPage() {
     }
     if (acao === "cuidados") return bot("Sobre qual assunto você quer saber? Você também pode digitar sua dúvida.", { botoes: CUIDADOS });
     if (acao.startsWith("faq:")) return respostaFaq(acao.split(":")[1] ?? "");
-    if (acao === "posse") return respostaFaq("posse");
-    if (acao === "ong") return respostaFaq("ong");
+    if (acao === "posse")
+      return bot(
+        "💛 Posse responsável é um compromisso para a vida toda:\n• Alimentação adequada e água fresca sempre\n• Vacinas e vermífugo em dia\n• Castração para evitar abandono e doenças\n• Passeios, carinho e um cantinho seguro\n• Nunca abandonar: o pet é parte da família!",
+        { botoes: MENU },
+      );
+    if (acao === "ong")
+      return bot(
+        "🏠 Para adotar ou ajudar, procure as ONGs e protetores de João Pessoa: o Centro de Zoonoses da cidade e os abrigos locais fazem um trabalho lindo. Use o botão \"Tenho interesse\" em um dos nossos animais e a equipe te coloca em contato com a ONG parceira. 🐾",
+        { botoes: MENU },
+      );
   };
 
   const interesse = (a: Animal) => {
