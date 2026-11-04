@@ -217,13 +217,23 @@ function Crud({ tabela, campos, titulo }: { tabela: "animais" | "faq"; campos: C
 }
 
 function Interesses() {
-  const [linhas, setLinhas] = useState<{ id: string; nome: string; contato: string; mensagem: string | null; criado_em: string; animais: { nome: string } | null }[]>([]);
+  type Interesse = { id: string; nome: string; contato: string; mensagem: string | null; criado_em: string; animal: string | null };
+  const [linhas, setLinhas] = useState<Interesse[]>([]);
   useEffect(() => {
     supabase
       .from("interesses")
       .select("id,nome,contato,mensagem,criado_em,animais(nome)")
       .order("criado_em", { ascending: false })
-      .then(({ data, error }) => (error ? toast.error(error.message) : setLinhas(data ?? [])));
+      .then(({ data, error }) => {
+        if (error) return toast.error(error.message);
+        setLinhas(
+          (data ?? []).map((l) => {
+            const rel = l.animais as { nome: string } | { nome: string }[] | null;
+            const animal = Array.isArray(rel) ? (rel[0]?.nome ?? null) : (rel?.nome ?? null);
+            return { id: l.id, nome: l.nome, contato: l.contato, mensagem: l.mensagem, criado_em: l.criado_em, animal };
+          }),
+        );
+      });
   }, []);
   return (
     <div className="mt-4 overflow-x-auto rounded-2xl border bg-card">
@@ -237,7 +247,7 @@ function Interesses() {
               <td className="p-3">{new Date(l.criado_em).toLocaleString("pt-BR")}</td>
               <td className="p-3">{l.nome}</td>
               <td className="p-3">{l.contato}</td>
-              <td className="p-3">{l.animais?.nome ?? "—"}</td>
+              <td className="p-3">{l.animal ?? "—"}</td>
               <td className="p-3">{l.mensagem ?? "—"}</td>
             </tr>
           ))}
