@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { buscarFaq, validarContato, validarNome } from "@/lib/bot";
 
 const faqs = [
-  { id: "1", categoria: "vacinas", palavras_chave: "vacina,raiva", pergunta: "", resposta: "A" },
-  { id: "2", categoria: "castracao", palavras_chave: "castração,castrar", pergunta: "", resposta: "B" },
+  { id: "1", categoria: "vacinas", palavras_chave: ["vacina", "raiva"], pergunta: "", resposta: "A" },
+  { id: "2", categoria: "castracao", palavras_chave: ["castração", "castrar"], pergunta: "", resposta: "B" },
 ];
 
 describe("bot", () => {

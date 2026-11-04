@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { PawPrint, Pencil, Trash2, Plus, LogOut } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -135,7 +135,13 @@ function Crud({ tabela, campos, titulo }: { tabela: "animais" | "faq"; campos: C
   const carregar = async () => {
     const { data, error } = await supabase.from(tabela).select("*").order("criado_em", { ascending: false });
     if (error) toast.error(error.message);
-    else setLinhas(data as unknown as Linha[]);
+    else
+      setLinhas(
+        (data ?? []).map((r) => ({
+          ...r,
+          palavras_chave: Array.isArray(r.palavras_chave) ? r.palavras_chave.join(", ") : r.palavras_chave,
+        })) as unknown as Linha[],
+      );
   };
   useEffect(() => { void carregar(); }, [tabela]);
 
@@ -144,7 +150,14 @@ function Crud({ tabela, campos, titulo }: { tabela: "animais" | "faq"; campos: C
   const salvar = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     if (!edit) return;
-    const dados = Object.fromEntries(campos.map((c) => [c.nome, (edit[c.nome] ?? "").trim()]));
+    const dados = Object.fromEntries(
+      campos.map((c) => {
+        const valor = (edit[c.nome] ?? "").trim();
+        // palavras_chave é text[] no banco: converte a lista separada por vírgula
+        if (c.nome === "palavras_chave") return [c.nome, valor.split(",").map((p) => p.trim()).filter(Boolean)];
+        return [c.nome, valor];
+      }),
+    );
     const { error } = edit.id
       ? await supabase.from(tabela).update(dados as never).eq("id", edit.id)
       : await supabase.from(tabela).insert(dados as never);
@@ -204,19 +217,32 @@ function Crud({ tabela, campos, titulo }: { tabela: "animais" | "faq"; campos: C
 }
 
 function Interesses() {
-  const [linhas, setLinhas] = useState<{ id: string; nome: string; contato: string; criado_em: string; animais: { nome: string } | null }[]>([]);
+  type Interesse = { id: string; nome: string; contato: string; mensagem: string | null; criado_em: string; animal: string | null };
+  const [linhas, setLinhas] = useState<Interesse[]>([]);
   useEffect(() => {
     supabase
       .from("interesses")
-      .select("id,nome,contato,criado_em,animais(nome)")
+      .select("id,nome,contato,mensagem,criado_em,animais(nome)")
       .order("criado_em", { ascending: false })
-      .then(({ data, error }) => (error ? toast.error(error.message) : setLinhas(data ?? [])));
+      .then(({ data, error }) => {
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
+        setLinhas(
+          (data ?? []).map((l) => {
+            const rel = l.animais as { nome: string } | { nome: string }[] | null;
+            const animal = Array.isArray(rel) ? (rel[0]?.nome ?? null) : (rel?.nome ?? null);
+            return { id: l.id, nome: l.nome, contato: l.contato, mensagem: l.mensagem, criado_em: l.criado_em, animal };
+          }),
+        );
+      });
   }, []);
   return (
     <div className="mt-4 overflow-x-auto rounded-2xl border bg-card">
       <table className="w-full text-sm">
         <thead className="bg-muted text-left">
-          <tr><th className="p-3">Data</th><th className="p-3">Nome</th><th className="p-3">Contato</th><th className="p-3">Animal</th></tr>
+          <tr><th className="p-3">Data</th><th className="p-3">Nome</th><th className="p-3">Contato</th><th className="p-3">Animal</th><th className="p-3">Mensagem</th></tr>
         </thead>
         <tbody>
           {linhas.map((l) => (
@@ -224,10 +250,11 @@ function Interesses() {
               <td className="p-3">{new Date(l.criado_em).toLocaleString("pt-BR")}</td>
               <td className="p-3">{l.nome}</td>
               <td className="p-3">{l.contato}</td>
-              <td className="p-3">{l.animais?.nome ?? "—"}</td>
+              <td className="p-3">{l.animal ?? "—"}</td>
+              <td className="p-3">{l.mensagem ?? "—"}</td>
             </tr>
           ))}
-          {!linhas.length && <tr><td colSpan={4} className="p-4 text-muted-foreground">Nenhum interesse ainda.</td></tr>}
+          {!linhas.length && <tr><td colSpan={5} className="p-4 text-muted-foreground">Nenhum interesse ainda.</td></tr>}
         </tbody>
       </table>
     </div>

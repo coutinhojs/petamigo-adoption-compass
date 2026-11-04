@@ -1,7 +1,7 @@
 export type FaqItem = {
   id: string;
   categoria: string;
-  palavras_chave: string;
+  palavras_chave: string[];
   pergunta: string;
   resposta: string;
 };
@@ -10,7 +10,7 @@ export function normalizar(texto: string): string {
   return texto
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .trim();
 }
 
@@ -21,7 +21,7 @@ export function buscarFaq(texto: string, faqs: FaqItem[]): FaqItem | null {
   let melhor: FaqItem | null = null;
   let tamanho = 0;
   for (const f of faqs) {
-    for (const kw of f.palavras_chave.split(",")) {
+    for (const kw of f.palavras_chave ?? []) {
       const k = normalizar(kw);
       if (k.length >= 3 && t.includes(k) && k.length > tamanho) {
         melhor = f;
