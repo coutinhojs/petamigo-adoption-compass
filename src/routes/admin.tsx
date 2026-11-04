@@ -225,7 +225,10 @@ function Interesses() {
       .select("id,nome,contato,mensagem,criado_em,animais(nome)")
       .order("criado_em", { ascending: false })
       .then(({ data, error }) => {
-        if (error) return toast.error(error.message);
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
         setLinhas(
           (data ?? []).map((l) => {
             const rel = l.animais as { nome: string } | { nome: string }[] | null;
